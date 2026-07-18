@@ -313,6 +313,12 @@
   var TLV_WALK_STREETS_LAYER = 659;
   var TLV_PERMITS_LAYER = 772;
   var TLV_REDLINE_LAYER = 766; // "הקו האדום - תחנות" - the only light-rail line currently operating
+  var TLV_STATAREA_LAYER = 512; // "אזורים סטטיסטיים" - display field ms_ezor, matches CBS statistical-area codes
+
+  // CBS socioeconomic cluster (1-10) per Tel Aviv-Yafo statistical area (ms_ezor code -> cluster),
+  // from the CBS 2021 census-based publication (מדד חברתי-כלכלי, טבלה ג, יולי 2024). Updated
+  // roughly every 2-3 years by CBS - this is a static snapshot baked into the app, not a live query.
+  var TLV_SOCIOECON = {"923":2,"234":2,"821":2,"934":3,"935":3,"735":3,"931":3,"746":3,"724":3,"932":3,"933":4,"747":4,"736":4,"744":4,"734":4,"924":5,"743":5,"824":5,"135":5,"937":5,"815":5,"833":5,"725":5,"936":5,"944":5,"748":5,"723":5,"823":5,"745":5,"945":5,"816":5,"822":5,"941":5,"925":5,"943":5,"929":6,"942":6,"946":6,"832":6,"721":6,"732":6,"947":6,"928":6,"733":6,"826":7,"814":7,"226":7,"927":7,"921":7,"926":7,"711":7,"522":7,"713":7,"922":7,"523":7,"916":7,"225":8,"731":8,"134":8,"511":8,"915":8,"521":8,"715":8,"722":8,"541":8,"812":8,"215":8,"811":8,"216":8,"335":8,"911":8,"512":8,"542":8,"436":8,"336":8,"813":9,"514":9,"552":9,"712":9,"334":9,"312":9,"533":9,"338":9,"611":9,"333":9,"317":9,"557":9,"344":9,"513":9,"133":9,"343":9,"912":9,"515":9,"326":9,"431":9,"532":9,"626":9,"337":9,"516":9,"313":9,"544":9,"132":9,"233":9,"612":9,"346":9,"321":9,"421":9,"221":9,"345":9,"554":9,"342":9,"341":9,"348":9,"415":9,"214":9,"125":9,"349":9,"517":9,"212":9,"113":9,"322":9,"324":9,"543":9,"555":9,"325":9,"315":9,"316":9,"413":9,"347":9,"314":9,"323":9,"114":9,"121":9,"411":9,"424":9,"412":9,"433":9,"422":9,"123":9,"213":9,"432":9,"124":9,"232":9,"223":9,"414":9,"423":9,"117":9,"115":9,"427":9,"211":9,"435":9,"122":9,"621":9,"222":9,"231":9,"437":9,"131":10,"914":10,"613":10,"224":10};
 
   var TLV_LANDUSE_TEXT = {
     'מגורים': 'מאופיין בעיקר במגורים - תומך בעסקים שכונתיים, פחות בפעילות ערב אינטנסיבית.',
@@ -501,9 +507,10 @@
       fetchTelAvivLayer(TLV_BIKE_LAYER, lat, lon, 250, false),
       fetchTelAvivLayer(TLV_WALK_STREETS_LAYER, lat, lon, 80, false),
       fetchTelAvivLayer(TLV_PERMITS_LAYER, lat, lon, 400, false),
-      fetchTelAvivLayer(TLV_REDLINE_LAYER, lat, lon, 600, true)
+      fetchTelAvivLayer(TLV_REDLINE_LAYER, lat, lon, 600, true),
+      fetchTelAvivLayer(TLV_STATAREA_LAYER, lat, lon, null, false)
     ]).then(function(results){
-      return { landuse:results[0], nightlife:results[1], bike:results[2], walkStreets:results[3], permits:results[4], redline:results[5] };
+      return { landuse:results[0], nightlife:results[1], bike:results[2], walkStreets:results[3], permits:results[4], redline:results[5], statarea:results[6] };
     });
   }
 
@@ -768,9 +775,30 @@
       var tags5 = [];
       if(landuseKnown) tags5.push(yeud);
       if(isNightlife) tags5.push(TLV_NIGHTLIFE_TAG);
+      var text5 = landuseKnown ? TLV_LANDUSE_TEXT[yeud] : '';
+      if(isNightlife) text5 += (text5?' ':'') + 'מוגדר גם כאזור בילוי פעיל על פי מדיניות הלילה של העירייה.';
+
+      // purchasing-power signal (CBS census data, residents only) - only meaningful where the
+      // land use tells us WHO the number describes; silently omitted for commercial/hotel/unknown areas
+      if(tlv.statarea && tlv.statarea.length && tlv.statarea[0].attributes){
+        var areaCode = tlv.statarea[0].attributes.ms_ezor;
+        var cluster = (areaCode!=null) ? TLV_SOCIOECON[String(areaCode)] : null;
+        if(cluster!=null){
+          if(yeud==='מגורים' || yeud==='מגורים-תעסוקה מעורב'){
+            var socioTag, socioText;
+            if(cluster>=8){ socioTag='כוח קנייה גבוה'; socioText='כוח הקנייה המקומי באזור גבוה מהממוצע העירוני.'; }
+            else if(cluster>=4){ socioTag='כוח קנייה מאוזן'; socioText='כוח הקנייה המקומי באזור קרוב לממוצע העירוני.'; }
+            else { socioTag='מתאים לתמחור נגיש'; socioText='כוח הקנייה המקומי באזור תומך בעיקר בעסקים ברמת תמחור נגישה.'; }
+            tags5.push(socioTag);
+            text5 += (text5?' ':'') + socioText;
+          } else if(yeud==='תעסוקה'){
+            text5 += (text5?' ':'') + 'נתוני כוח הקנייה של התושבים הקבועים פחות רלוונטיים כאן - האזור מוטה תעסוקה, והתנועה בפועל מגיעה בעיקר מעובדים ולא מתושבים.';
+          }
+          // other land-use categories (מסחר, מלונאות/תיירות, לא ידוע): no reliable claim to make - stay silent
+        }
+      }
+
       if(tags5.length){
-        var text5 = landuseKnown ? TLV_LANDUSE_TEXT[yeud] : '';
-        if(isNightlife) text5 += (text5?' ':'') + 'מוגדר גם כאזור בילוי פעיל על פי מדיניות הלילה של העירייה.';
         card5 = { title:'איזה סוג מקום זה', tags:tags5, text:text5 };
       }
     }
