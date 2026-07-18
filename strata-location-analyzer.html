@@ -466,7 +466,7 @@
   function fetchTelAvivLayer(layerId, lat, lon, distanceMeters){
     var url = '/api/telaviv-gis/' + layerId + '?lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lon)
       + (distanceMeters ? ('&distance=' + distanceMeters) : '');
-    return fetchWithTimeout(url, {}, 9000).then(function(res){
+    return fetchWithTimeout(url, {}, 15000).then(function(res){
       return res.text().then(function(text){
         if(!res.ok) return [];
         try{

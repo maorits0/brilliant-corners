@@ -42,11 +42,15 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         print("  " + (fmt % args))
 
     def _send_json_bytes(self, status, data_bytes):
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.end_headers()
-        self.wfile.write(data_bytes)
+        try:
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(data_bytes)
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError, OSError) as exc:
+            # הדפדפן כבר סגר את החיבור (למשל timeout בצד הלקוח) - מתעדים ולא מפילים את השרת
+            print("  [החיבור נסגר לפני שהתשובה נשלחה]", exc)
 
     def _send_error_json(self, status, message):
         self._send_json_bytes(status, json.dumps({"error": message}).encode("utf-8"))
