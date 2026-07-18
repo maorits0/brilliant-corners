@@ -452,21 +452,28 @@
       'way(around:700,'+lat+','+lon+')[amenity~"^(townhall|library|community_centre|post_office)$"];' +
       ');out center tags;';
 
+  function fetchOverpassOnce(){
     return fetchWithTimeout('/api/overpass', { method:'POST', body:q }, 45000).then(function(res){
       return res.text().then(function(text){
         if(!res.ok){
-          throw new Error('שרת נתוני הסביבה החזיר שגיאה (קוד ' + res.status + ').');
+          throw new Error('server_error');
         }
         var json;
         try{ json = JSON.parse(text); }
-        catch(e){ throw new Error('התקבלה תשובה לא תקינה משרת נתוני הסביבה.'); }
+        catch(e){ throw new Error('bad_json'); }
         return json.elements || [];
       });
-    }).catch(function(err){
-      if(err && err.name==='AbortError') throw new Error('שרת נתוני הסביבה לא הגיב בזמן סביר.');
-      if(err instanceof TypeError) throw new Error('לא ניתן להגיע לשרת המקומי. ודא שהשרת (proxy_server.py) עדיין רץ בטרמינל.');
-      throw err;
     });
+  }
+
+  return fetchOverpassOnce().catch(function(){
+    // one automatic retry after a short pause - covers transient overload on the free map-data services
+    return new Promise(function(resolve){ setTimeout(resolve, 2500); }).then(fetchOverpassOnce);
+  }).catch(function(err){
+    if(err && err.name==='AbortError') throw new Error('שרת נתוני הסביבה לא הגיב בזמן סביר. נסה שוב בעוד רגע.');
+    if(err instanceof TypeError) throw new Error('לא ניתן להגיע לשרת המקומי. ודא שהשרת (proxy_server.py) עדיין רץ בטרמינל.');
+    throw new Error('שירותי מפת הסביבה עמוסים כרגע. נסה שוב בעוד רגע.');
+  });
   }
 
   // Fetches one Tel Aviv GIS layer. Always resolves (never rejects) - on any
