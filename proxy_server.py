@@ -85,6 +85,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             lat = qs.get("lat", [""])[0]
             lon = qs.get("lon", [""])[0]
             distance = qs.get("distance", [""])[0]
+            want_geometry = qs.get("geometry", [""])[0] == "1"
             if not lat or not lon:
                 self._send_error_json(400, "missing lat/lon")
                 return
@@ -94,9 +95,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 "inSR": "4326",
                 "spatialRel": "esriSpatialRelIntersects",
                 "outFields": "*",
-                "returnGeometry": "false",
+                "returnGeometry": "true" if want_geometry else "false",
                 "f": "json",
             }
+            if want_geometry:
+                params["outSR"] = "4326"
             if distance:
                 params["distance"] = distance
                 params["units"] = "esriSRUnit_Meter"

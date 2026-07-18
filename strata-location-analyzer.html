@@ -472,9 +472,10 @@
   // Fetches one Tel Aviv GIS layer. Always resolves (never rejects) - on any
   // failure (network, non-Tel-Aviv location, server error) it resolves to an
   // empty array, so this enrichment degrades silently everywhere else.
-  function fetchTelAvivLayer(layerId, lat, lon, distanceMeters){
+  function fetchTelAvivLayer(layerId, lat, lon, distanceMeters, wantGeometry){
     var url = '/api/telaviv-gis/' + layerId + '?lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lon)
-      + (distanceMeters ? ('&distance=' + distanceMeters) : '');
+      + (distanceMeters ? ('&distance=' + distanceMeters) : '')
+      + (wantGeometry ? '&geometry=1' : '');
     return fetchWithTimeout(url, {}, 15000).then(function(res){
       return res.text().then(function(text){
         if(!res.ok) return [];
@@ -488,12 +489,12 @@
 
   function fetchTelAvivEnrichment(lat, lon){
     return Promise.all([
-      fetchTelAvivLayer(TLV_LANDUSE_LAYER, lat, lon, null),
-      fetchTelAvivLayer(TLV_NIGHTLIFE_LAYER, lat, lon, null),
-      fetchTelAvivLayer(TLV_BIKE_LAYER, lat, lon, 250),
-      fetchTelAvivLayer(TLV_WALK_STREETS_LAYER, lat, lon, 80),
-      fetchTelAvivLayer(TLV_PERMITS_LAYER, lat, lon, 400),
-      fetchTelAvivLayer(TLV_REDLINE_LAYER, lat, lon, 600)
+      fetchTelAvivLayer(TLV_LANDUSE_LAYER, lat, lon, null, false),
+      fetchTelAvivLayer(TLV_NIGHTLIFE_LAYER, lat, lon, null, false),
+      fetchTelAvivLayer(TLV_BIKE_LAYER, lat, lon, 250, false),
+      fetchTelAvivLayer(TLV_WALK_STREETS_LAYER, lat, lon, 80, false),
+      fetchTelAvivLayer(TLV_PERMITS_LAYER, lat, lon, 400, false),
+      fetchTelAvivLayer(TLV_REDLINE_LAYER, lat, lon, 600, true)
     ]).then(function(results){
       return { landuse:results[0], nightlife:results[1], bike:results[2], walkStreets:results[3], permits:results[4], redline:results[5] };
     });
@@ -598,6 +599,17 @@
     var timeNorm = {};
     ['morning','afternoon','evening'].forEach(function(t){ timeNorm[t] = Math.min(timeBuckets[t]/2,1); });
 
+    // nightlife-policy cap: only applies where we have confirmed Tel Aviv coverage
+    // (land-use data present) and the area is NOT designated for nightlife - never
+    // penalizes addresses outside Tel Aviv, where we simply have no data either way.
+    var nightlifeCapped = false;
+    var hasConfirmedCoverage = !!(tlv.landuse && tlv.landuse.length);
+    var isNightlifeZone = !!(tlv.nightlife && tlv.nightlife.length);
+    if(hasConfirmedCoverage && !isNightlifeZone && timeNorm.evening>0.5){
+      timeNorm.evening = 0.5;
+      nightlifeCapped = true;
+    }
+
     var relevantTimes = (businessType.peak||[]).map(function(t){ return timeNorm[t]||0; });
     var avgRelevant = relevantTimes.length ? relevantTimes.reduce(function(s,v){return s+v;},0)/relevantTimes.length : 0;
     var timeScore = Math.round(avgRelevant*8);
@@ -616,11 +628,12 @@
         var overlaps = (c.anchor.def.peak||[]).some(function(t){ return times.indexOf(t)>-1; });
         if(!overlaps) return;
         var lbl = c.anchor.def.label;
-        if(!byLabel[lbl] || c.pull>byLabel[lbl]) byLabel[lbl] = c.pull;
+        if(!byLabel[lbl] || c.pull>byLabel[lbl].pull) byLabel[lbl] = { pull:c.pull, dist:c.anchor.dist };
       });
-      var sorted = Object.keys(byLabel).sort(function(a,b){ return byLabel[b]-byLabel[a]; }).slice(0,2);
-      if(sorted.length<=1) return sorted[0]||'';
-      return sorted[0]+' ו'+sorted[1];
+      var sorted = Object.keys(byLabel).sort(function(a,b){ return byLabel[b].pull-byLabel[a].pull; }).slice(0,2);
+      function withDist(lbl){ return lbl + ' (כ-' + Math.round(byLabel[lbl].dist) + ' מ׳)'; }
+      if(sorted.length<=1) return sorted[0] ? withDist(sorted[0]) : '';
+      return withDist(sorted[0])+' ו'+withDist(sorted[1]);
     }
 
     var needed = businessType.peak||[];
@@ -629,17 +642,21 @@
     var neededStrong = needed.filter(function(t){ return strong.indexOf(t)>-1; });
     var neededLimited = needed.filter(function(t){ return limited.indexOf(t)>-1; });
 
+    var needsEvening = needed.indexOf('evening')>-1;
     var timeText;
     if(!powerRaw.length){
       timeText = 'אין מספיק מוקדי משיכה בסביבה כדי לאפיין את קצב הפעילות לפי שעות היום.';
     } else if(neededStrong.length){
       timeText = 'פעילות ' + timeListHe(neededStrong) + ' חזקה בזכות ' + anchorLabelsFor(neededStrong) + ' - מתאים לשעות הפעילות של ' + businessType.label + '.';
+    } else if(nightlifeCapped && needsEvening){
+      timeText = businessType.label + ' זקוק לפעילות ערב, אך האזור אינו מוגדר כאזור בילוי לפי מדיניות הלילה של העירייה - מה שמצמצם את הפוטנציאל גם אם יש תנועה כללית בסביבה.';
     } else if(neededLimited.length){
       timeText = 'השעות המרכזיות ל' + businessType.label + ' (' + timeListHe(neededLimited) + ') דווקא חלשות יחסית באזור זה.';
     } else {
       timeText = 'קצב הפעילות באזור מאוזן יחסית, בלי שעת שיא בולטת אחת.';
     }
-    var breakdownTiming = 'ציון התאמת שעות: ' + timeScore + '/8 · בוקר: ' + Math.round(timeNorm.morning*100) + '% · צהריים: ' + Math.round(timeNorm.afternoon*100) + '% · ערב: ' + Math.round(timeNorm.evening*100) + '%';
+    var breakdownTiming = 'ציון התאמת שעות: ' + timeScore + '/8 · בוקר: ' + Math.round(timeNorm.morning*100) + '% · צהריים: ' + Math.round(timeNorm.afternoon*100) + '% · ערב: ' + Math.round(timeNorm.evening*100) + '%' +
+      (nightlifeCapped ? ' (פוטנציאל הערב מוגבל ל-50% - האזור אינו מוגדר כאזור בילוי לפי מדיניות הלילה של העירייה)' : '');
 
     var timeInsight = null;
     if(powerRaw.length){
@@ -657,7 +674,13 @@
     var busStops = transit.filter(function(t){ return t.mode==='bus'; });
     var heavyRail = transit.filter(function(t){ return t.mode==='heavy_rail'; });
     var otherRail = transit.filter(function(t){ return t.mode==='other_rail'; });
-    var redlineNearby = !!(tlv.redline && tlv.redline.length);
+    var redlineDists = (tlv.redline||[]).map(function(f){
+      var g = f.geometry;
+      if(!g || g.x==null || g.y==null) return null;
+      return haversine(center.lat, center.lon, g.y, g.x);
+    }).filter(function(d){ return d!=null; });
+    var nearestRedline = redlineDists.length ? Math.min.apply(null, redlineDists) : null;
+    var redlineNearby = nearestRedline!=null;
     var softMobility = !!((tlv.bike && tlv.bike.length) || (tlv.walkStreets && tlv.walkStreets.length));
 
     var nearestTransitDist = transit.length ? Math.min.apply(null, transit.map(function(t){return t.dist;})) : null;
@@ -676,7 +699,7 @@
     var accessParts = [
       busStops.length ? (busStops.length + (busStops.length===1?' תחנת אוטובוס':' תחנות אוטובוס') + ' ברדיוס 400 מ׳') : 'אין תחנת אוטובוס ברדיוס 400 מ׳',
       (heavyRail.length||otherRail.length) ? 'תחנת רכבת בסביבה' : null,
-      redlineNearby ? 'רכבת קלה (קו אדום) בקרבת מקום' : null,
+      redlineNearby ? ('רכבת קלה (קו אדום) במרחק כ-' + Math.round(nearestRedline) + ' מ׳') : null,
       softMobility ? 'תשתית הליכה ואופניים נוחה' : null
     ];
     var accessText = accessParts.filter(function(x){return x;}).join(' · ') + '.';
