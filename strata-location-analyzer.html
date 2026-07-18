@@ -54,9 +54,9 @@
     border-radius:18px;
   }
 
-  .input-panel{padding:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:stretch;}
+  .input-panel{padding:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;}
   .field{display:flex;flex-direction:column;gap:6px;flex:1 1 260px;}
-  .field label{font-size:12px;color:var(--text-dim);padding:0 2px;}
+  .field label{font-size:12px;color:var(--text-dim);padding:0 2px;line-height:1;}
   .field input[type=text]{
     background:#0F1216;border:1px solid var(--border);color:var(--text);
     border-radius:10px;padding:13px 14px;font-size:15px;outline:none;
@@ -82,29 +82,37 @@
   }
   .suggestion-item.active,.suggestion-item:hover{background:var(--panel-2);color:var(--text);}
   .suggestion-empty{padding:12px 14px;font-size:13px;color:var(--text-faint);}
-  .select-wrap{position:relative;flex:0 1 200px;}
-  .select-wrap select{
+  .select-wrap{flex:0 1 200px;}
+  .select-box{position:relative;}
+  .select-box select{
     appearance:none;-webkit-appearance:none;width:100%;
     background:#0F1216;border:1px solid var(--border);color:var(--text);
     border-radius:10px;padding:13px 34px 13px 14px;font-size:15px;outline:none;
     cursor:pointer;transition:border-color .15s ease;
   }
-  .select-wrap select:focus{border-color:var(--accent);}
-  .select-wrap::after{
+  .select-box select:focus{border-color:var(--accent);}
+  .select-box::after{
     content:"";position:absolute;left:14px;top:50%;transform:translateY(-50%) rotate(45deg);
     width:7px;height:7px;border-right:2px solid var(--text-dim);border-bottom:2px solid var(--text-dim);
     pointer-events:none;
   }
+  .btn-field{flex:0 0 auto;}
+  .btn-field label{visibility:hidden;}
   .analyze-btn{
     flex:0 0 auto;border:none;cursor:pointer;border-radius:10px;
-    padding:0 26px;font-size:15px;font-weight:700;color:#1A1206;
+    padding:13px 26px;font-size:15px;font-weight:700;color:#1A1206;line-height:1.2;
     background:linear-gradient(135deg,var(--accent),var(--accent-2));
     box-shadow:0 8px 24px -8px rgba(255,140,20,.55);
     transition:transform .12s ease,box-shadow .12s ease,opacity .12s ease;
-    min-width:150px;
+    min-width:150px;white-space:nowrap;
   }
   .analyze-btn:hover{transform:translateY(-1px);box-shadow:0 10px 28px -8px rgba(255,140,20,.7);}
   .analyze-btn:disabled{opacity:.55;cursor:default;transform:none;box-shadow:none;}
+  @media (max-width:640px){
+    .input-panel{flex-direction:column;flex-wrap:nowrap;}
+    .field,.select-wrap,.btn-field{flex:1 1 auto;width:100%;}
+    .analyze-btn{width:100%;}
+  }
 
   .error-box{
     margin-top:16px;padding:14px 16px;border-radius:12px;
@@ -158,8 +166,9 @@
   .breakdown-row{font-size:12.5px;color:var(--text-dim);line-height:1.9;}
   .breakdown-row b{color:var(--text);font-weight:600;}
 
-  .factors{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:32px;padding:0 4px;}
-  @media (max-width:720px){.factors{grid-template-columns:1fr;}}
+  .factors{display:flex;flex-wrap:wrap;gap:14px;margin-top:32px;padding:0 4px;}
+  .factors > .factor-card{flex:1 1 230px;}
+  @media (max-width:720px){.factors > .factor-card{flex-basis:100%;}}
 
   .time-dots{display:flex;justify-content:space-between;gap:8px;margin-bottom:12px;padding:4px 2px;}
   .time-dot-item{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;}
@@ -1151,18 +1160,23 @@
             ) : null
           )
         ),
-        h('div',{className:'select-wrap'},
-          h('label',{style:{fontSize:'12px',color:'var(--text-dim)',padding:'0 2px 6px',display:'block'}},'סוג עסק'),
-          h('select',{ value:businessTypeValue, onChange:function(e){setBusinessTypeValue(e.target.value);} },
-            BUSINESS_GROUPS.map(function(g){
-              return h('optgroup',{key:g.label, label:g.label},
-                g.items.map(function(bt){ return h('option',{key:bt.value, value:bt.value}, bt.label); })
-              );
-            })
+        h('div',{className:'select-wrap field'},
+          h('label',null,'סוג עסק'),
+          h('div',{className:'select-box'},
+            h('select',{ value:businessTypeValue, onChange:function(e){setBusinessTypeValue(e.target.value);} },
+              BUSINESS_GROUPS.map(function(g){
+                return h('optgroup',{key:g.label, label:g.label},
+                  g.items.map(function(bt){ return h('option',{key:bt.value, value:bt.value}, bt.label); })
+                );
+              })
+            )
           )
         ),
-        h('button',{className:'analyze-btn', disabled:loading, onClick:handleAnalyze, style:{alignSelf:'flex-end'}},
-          loading ? 'מנתח…' : 'נתח את המיקום'
+        h('div',{className:'field btn-field'},
+          h('label',{'aria-hidden':'true'}, '\u00A0'),
+          h('button',{className:'analyze-btn', disabled:loading, onClick:handleAnalyze},
+            loading ? 'מנתח…' : 'נתח את המיקום'
+          )
         )
       ),
 
