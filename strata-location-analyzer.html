@@ -54,6 +54,34 @@
     border-radius:18px;
   }
 
+  .mode-toggle{display:flex;justify-content:center;gap:8px;margin-bottom:18px;}
+  .mode-btn{
+    padding:9px 22px;border-radius:999px;border:1px solid var(--border);background:var(--panel);
+    color:var(--text-dim);font-size:13.5px;font-weight:600;cursor:pointer;transition:all .15s ease;
+  }
+  .mode-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#1A1206;border-color:transparent;}
+  .mode-btn:not(.active):hover{color:var(--text);border-color:var(--accent);}
+
+  .ranked-list{margin-top:32px;}
+  .ranked-head{font-size:13px;color:var(--text-dim);margin-bottom:12px;padding:0 4px;}
+  .ranked-head b{color:var(--text);}
+  .ranked-row{
+    display:flex;align-items:center;gap:16px;padding:16px 18px;margin-bottom:8px;
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;cursor:pointer;
+    transition:border-color .15s ease,transform .1s ease;
+  }
+  .ranked-row:hover{border-color:var(--accent);transform:translateY(-1px);}
+  .ranked-score{font-size:22px;font-weight:800;min-width:44px;text-align:center;}
+  .ranked-info{flex:1;min-width:0;}
+  .ranked-name{font-size:14.5px;font-weight:700;margin-bottom:3px;}
+  .ranked-summary{font-size:12.5px;color:var(--text-dim);line-height:1.5;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;}
+  .ranked-arrow{color:var(--text-faint);font-size:20px;flex:0 0 auto;}
+  .back-to-list{
+    display:block;margin:0 0 16px;background:none;border:none;color:var(--text-dim);
+    font-size:13px;cursor:pointer;padding:6px 2px;
+  }
+  .back-to-list:hover{color:var(--accent);}
+
   .input-panel{padding:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;}
   .field{display:flex;flex-direction:column;gap:6px;flex:1 1 260px;}
   .field label{font-size:12px;color:var(--text-dim);padding:0 2px;line-height:1;}
@@ -226,48 +254,48 @@
   // ---------- config ----------
   var BUSINESS_GROUPS = [
     { label:'אוכל ומשקאות', items:[
-      { value:'cafe',       label:'בית קפה',            osmKey:'amenity', osmValue:'cafe',       peak:['morning','afternoon'] },
-      { value:'restaurant', label:'מסעדה',               osmKey:'amenity', osmValue:'restaurant', peak:['afternoon','evening'] },
-      { value:'fast_food',  label:'מזון מהיר',           osmKey:'amenity', osmValue:'fast_food',  peak:['afternoon','evening'] },
-      { value:'bakery',     label:'מאפייה',              osmKey:'shop',    osmValue:'bakery',     peak:['morning'] },
-      { value:'ice_cream',  label:'גלידריה',             osmKey:'amenity', osmValue:'ice_cream',  peak:['afternoon','evening'] },
-      { value:'bar',        label:'בר / פאב',            osmKey:'amenity', osmValue:'bar',        peak:['evening'] }
+      { value:'cafe',       label:'בית קפה',            osmKey:'amenity', osmValue:'cafe',       peak:['morning','afternoon'], size:{min:30,ideal:60,max:120}, frontage:true },
+      { value:'restaurant', label:'מסעדה',               osmKey:'amenity', osmValue:'restaurant', peak:['afternoon','evening'], size:{min:60,ideal:120,max:250}, frontage:true },
+      { value:'fast_food',  label:'מזון מהיר',           osmKey:'amenity', osmValue:'fast_food',  peak:['afternoon','evening'], size:{min:40,ideal:80,max:150}, frontage:true },
+      { value:'bakery',     label:'מאפייה',              osmKey:'shop',    osmValue:'bakery',     peak:['morning'], size:{min:30,ideal:55,max:100}, frontage:true },
+      { value:'ice_cream',  label:'גלידריה',             osmKey:'amenity', osmValue:'ice_cream',  peak:['afternoon','evening'], size:{min:15,ideal:35,max:70}, frontage:true },
+      { value:'bar',        label:'בר / פאב',            osmKey:'amenity', osmValue:'bar',        peak:['evening'], size:{min:40,ideal:90,max:200}, frontage:true }
     ]},
     { label:'קמעונאות יומיומית', items:[
-      { value:'supermarket', label:'סופרמרקט',           osmKey:'shop', osmValue:'supermarket', peak:['morning','afternoon','evening'] },
-      { value:'convenience', label:'מכולת / מינימרקט',   osmKey:'shop', osmValue:'convenience',  peak:['morning','afternoon','evening'] },
-      { value:'pharmacy',    label:'בית מרקחת',           osmKey:'amenity', osmValue:'pharmacy',  peak:['morning','afternoon'] },
-      { value:'florist',     label:'חנות פרחים',          osmKey:'shop', osmValue:'florist',      peak:['afternoon'] }
+      { value:'supermarket', label:'סופרמרקט',           osmKey:'shop', osmValue:'supermarket', peak:['morning','afternoon','evening'], size:{min:150,ideal:400,max:1200}, frontage:true },
+      { value:'convenience', label:'מכולת / מינימרקט',   osmKey:'shop', osmValue:'convenience',  peak:['morning','afternoon','evening'], size:{min:25,ideal:50,max:100}, frontage:true },
+      { value:'pharmacy',    label:'בית מרקחת',           osmKey:'amenity', osmValue:'pharmacy',  peak:['morning','afternoon'], size:{min:40,ideal:80,max:180}, frontage:true },
+      { value:'florist',     label:'חנות פרחים',          osmKey:'shop', osmValue:'florist',      peak:['afternoon'], size:{min:15,ideal:30,max:60}, frontage:true }
     ]},
     { label:'אופנה ועיצוב הבית', items:[
-      { value:'clothing',  label:'חנות בגדים',          osmKey:'shop', osmValue:'clothes',   peak:['afternoon','evening'] },
-      { value:'shoes',     label:'חנות נעליים',         osmKey:'shop', osmValue:'shoes',      peak:['afternoon','evening'] },
-      { value:'jewelry',   label:'תכשיטים ואקססוריז',   osmKey:'shop', osmValue:'jewelry',    peak:['afternoon','evening'] },
-      { value:'furniture', label:'רהיטים ועיצוב',       osmKey:'shop', osmValue:'furniture',  peak:['afternoon'] }
+      { value:'clothing',  label:'חנות בגדים',          osmKey:'shop', osmValue:'clothes',   peak:['afternoon','evening'], size:{min:30,ideal:80,max:200}, frontage:true },
+      { value:'shoes',     label:'חנות נעליים',         osmKey:'shop', osmValue:'shoes',      peak:['afternoon','evening'], size:{min:25,ideal:60,max:150}, frontage:true },
+      { value:'jewelry',   label:'תכשיטים ואקססוריז',   osmKey:'shop', osmValue:'jewelry',    peak:['afternoon','evening'], size:{min:15,ideal:35,max:80}, frontage:true },
+      { value:'furniture', label:'רהיטים ועיצוב',       osmKey:'shop', osmValue:'furniture',  peak:['afternoon'], size:{min:100,ideal:300,max:800}, frontage:true }
     ]},
     { label:'טיפוח ויופי', items:[
-      { value:'hairdresser', label:'מספרה',              osmKey:'shop', osmValue:'hairdresser', peak:['afternoon'] },
-      { value:'beauty',      label:'קוסמטיקה וטיפוח',    osmKey:'shop', osmValue:'beauty',      peak:['afternoon'] },
-      { value:'tattoo',      label:'קעקועים ופירסינג',   osmKey:'shop', osmValue:'tattoo',      peak:['afternoon','evening'] }
+      { value:'hairdresser', label:'מספרה',              osmKey:'shop', osmValue:'hairdresser', peak:['afternoon'], size:{min:25,ideal:50,max:100}, frontage:true },
+      { value:'beauty',      label:'קוסמטיקה וטיפוח',    osmKey:'shop', osmValue:'beauty',      peak:['afternoon'], size:{min:20,ideal:45,max:90}, frontage:true },
+      { value:'tattoo',      label:'קעקועים ופירסינג',   osmKey:'shop', osmValue:'tattoo',      peak:['afternoon','evening'], size:{min:20,ideal:40,max:80}, frontage:false }
     ]},
     { label:'בריאות וכושר', items:[
-      { value:'gym',        label:'חדר כושר',            osmKey:'leisure', osmValue:'fitness_centre', peak:['morning','evening'] },
-      { value:'dentist',    label:'מרפאת שיניים',        osmKey:'amenity', osmValue:'dentist',    peak:['morning','afternoon'] },
-      { value:'optician',   label:'אופטיקה',             osmKey:'shop',    osmValue:'optician',   peak:['afternoon'] },
-      { value:'veterinary', label:'וטרינר',              osmKey:'amenity', osmValue:'veterinary', peak:['morning','afternoon'] }
+      { value:'gym',        label:'חדר כושר',            osmKey:'leisure', osmValue:'fitness_centre', peak:['morning','evening'], size:{min:150,ideal:350,max:1000}, frontage:false },
+      { value:'dentist',    label:'מרפאת שיניים',        osmKey:'amenity', osmValue:'dentist',    peak:['morning','afternoon'], size:{min:40,ideal:80,max:150}, frontage:false },
+      { value:'optician',   label:'אופטיקה',             osmKey:'shop',    osmValue:'optician',   peak:['afternoon'], size:{min:20,ideal:45,max:90}, frontage:true },
+      { value:'veterinary', label:'וטרינר',              osmKey:'amenity', osmValue:'veterinary', peak:['morning','afternoon'], size:{min:40,ideal:80,max:150}, frontage:false }
     ]},
     { label:'פנאי ותרבות', items:[
-      { value:'escape_game', label:'חדר בריחה',          osmKey:'leisure', osmValue:'escape_game', peak:['afternoon','evening'] },
-      { value:'games',       label:'משחקים ותחביבים',    osmKey:'shop',    osmValue:'games',       peak:['afternoon','evening'] }
+      { value:'escape_game', label:'חדר בריחה',          osmKey:'leisure', osmValue:'escape_game', peak:['afternoon','evening'], size:{min:80,ideal:150,max:300}, frontage:false },
+      { value:'games',       label:'משחקים ותחביבים',    osmKey:'shop',    osmValue:'games',       peak:['afternoon','evening'], size:{min:25,ideal:55,max:120}, frontage:true }
     ]},
     { label:'שירותים ומקצועות', items:[
-      { value:'laundry',       label:'מכבסה',              osmKey:'shop', osmValue:'laundry',       peak:['morning','afternoon'] },
-      { value:'travel_agency', label:'סוכנות נסיעות',      osmKey:'shop', osmValue:'travel_agency', peak:['afternoon'] },
-      { value:'copyshop',      label:'בית דפוס והדפסות',   osmKey:'shop', osmValue:'copyshop',      peak:['morning','afternoon'] }
+      { value:'laundry',       label:'מכבסה',              osmKey:'shop', osmValue:'laundry',       peak:['morning','afternoon'], size:{min:20,ideal:40,max:80}, frontage:true },
+      { value:'travel_agency', label:'סוכנות נסיעות',      osmKey:'shop', osmValue:'travel_agency', peak:['afternoon'], size:{min:20,ideal:45,max:90}, frontage:false },
+      { value:'copyshop',      label:'בית דפוס והדפסות',   osmKey:'shop', osmValue:'copyshop',      peak:['morning','afternoon'], size:{min:20,ideal:45,max:90}, frontage:true }
     ]},
     { label:'ילדים ומשפחה', items:[
-      { value:'toys',           label:'חנות צעצועים',      osmKey:'shop',    osmValue:'toys',           peak:['afternoon','evening'] },
-      { value:'driving_school', label:'בית ספר לנהיגה',    osmKey:'amenity', osmValue:'driving_school', peak:['afternoon','evening'] }
+      { value:'toys',           label:'חנות צעצועים',      osmKey:'shop',    osmValue:'toys',           peak:['afternoon','evening'], size:{min:25,ideal:60,max:150}, frontage:true },
+      { value:'driving_school', label:'בית ספר לנהיגה',    osmKey:'amenity', osmValue:'driving_school', peak:['afternoon','evening'], size:{min:20,ideal:40,max:80}, frontage:false }
     ]}
   ];
   var BUSINESS_TYPES = BUSINESS_GROUPS.reduce(function(acc,g){ return acc.concat(g.items); }, []);
@@ -345,6 +373,36 @@
     return R*c;
   }
   function clamp(n,min,max){ return Math.max(min,Math.min(max,n)); }
+
+  // 0..1 fit score for a given size against a business type's {min,ideal,max} sqm range.
+  // 1.0 exactly at ideal, 0.6 exactly at the min/max edges, tapering toward 0.1 further outside.
+  function sizeFitScore(size, range){
+    if(size==null || !range) return null;
+    var ideal=range.ideal, min=range.min, max=range.max;
+    if(size===ideal) return 1;
+    if(size>min && size<max){
+      if(size<ideal) return 0.6 + 0.4*(size-min)/(ideal-min);
+      return 0.6 + 0.4*(max-size)/(max-ideal);
+    }
+    var edge = size<min ? min : max;
+    var span = Math.max(max-min,1);
+    var t = Math.min(Math.abs(size-edge)/span, 1);
+    return Math.max(0.6*(1-t), 0.1);
+  }
+
+  // point contribution from size fit: up to +8 for a great fit, down to -12 for a poor one, 0 if not provided
+  function sizePoints(size, range){
+    var fit = sizeFitScore(size, range);
+    if(fit==null) return 0;
+    return fit>=0.6 ? Math.round((fit-0.6)/0.4*8) : Math.round((fit-0.6)/0.5*12);
+  }
+
+  // point contribution from street frontage: only relevant when the business type actually needs it -
+  // a real unmet requirement should net negative on its own, never get diluted by an unrelated good size score
+  function frontagePoints(hasFrontage, needsFrontage){
+    if(!needsFrontage || hasFrontage==null) return 0;
+    return hasFrontage ? 5 : -12;
+  }
   function scoreColor(score){
     if(score<40) return 'var(--weak)';
     if(score<70) return 'var(--mid)';
@@ -515,7 +573,8 @@
   }
 
   // ---------- scoring ----------
-  function computeAnalysis(businessType, elements, center, tlv){
+  function computeAnalysis(businessType, elements, center, tlv, propertyInfo){
+    propertyInfo = propertyInfo || {};
     tlv = tlv || {};
     var businesses = [], transit = [], officePoints = [], powerRaw = [];
 
@@ -734,7 +793,22 @@
       : sameCount800 + (sameCount800===1?' עסק דומה פועל':' עסקים דומים פועלים') + ' כבר באזור, מה שמעיד על ' + (sameCount800<=2?'ביקוש מוכח בלי רוויה.':sameCount800<=5?'תמהיל תומך אך תחרותי יותר.':'אזור רווי לסוג עסק זה.');
     var breakdownFit = sameCount800 + ' עסקים דומים ברדיוס 800 מ׳ → ' + Math.round(fit) + '/30 · קנס תחרות (מרדיוס 400 מ׳ בלבד): -' + Math.round(penalty) + ' נק׳ מהציון הכולל.';
 
-    var finalScore = clamp(Math.round(quantityScore+timeScore+access+fit-penalty),0,100);
+    var sizePts = sizePoints(propertyInfo.size, businessType.size);
+    var frontPts = frontagePoints(propertyInfo.hasFrontage, businessType.frontage);
+    var physicalModifier = sizePts + frontPts;
+    var physicalText = null;
+    if(propertyInfo.size!=null || propertyInfo.hasFrontage!=null){
+      var parts = [];
+      if(propertyInfo.size!=null){
+        parts.push('גודל ' + Math.round(propertyInfo.size) + ' מ״ר מול טווח אידיאלי של ' + businessType.size.min + '-' + businessType.size.max + ' מ״ר (אידיאלי: ' + businessType.size.ideal + ')');
+      }
+      if(propertyInfo.hasFrontage!=null){
+        parts.push(businessType.frontage ? ('חזית לרחוב: ' + (propertyInfo.hasFrontage?'יש':'אין') + ' (נדרשת לסוג עסק זה)') : 'חזית לרחוב לא קריטית לסוג עסק זה');
+      }
+      physicalText = parts.join(' · ') + (physicalModifier!==0 ? (physicalModifier>0 ? ' - תוספת של ' : ' - הפחתה של ') + Math.abs(physicalModifier) + ' נק׳ לציון.' : ' - התאמה נייטרלית לציון.');
+    }
+
+    var finalScore = clamp(Math.round(quantityScore+timeScore+access+fit-penalty+physicalModifier),0,100);
 
     // ============ smart summary, now over 4 factors ============
     var factorMap = { quantity:quantityDisp, timing:timeDisp, access:accessDisp, fit:fitDisp };
@@ -851,6 +925,7 @@
         fit:      { score:fitDisp,      title:'מי כבר כאן',                 text:fitText }
       },
       breakdown: { quantity:breakdownQuantity, timing:breakdownTiming, access:breakdownAccess, fit:breakdownFit },
+      physicalFit: physicalText,
       tagCards: { character:card5, renewal:card6 },
       timeProfile: timeNorm,
       summary: summary,
@@ -1096,7 +1171,26 @@
     var debounceRef = React.useRef(null);
     var abortRef = React.useRef(null);
 
+    var ownerModeState = React.useState('business'); // 'business' | 'property'
+    var ownerMode = ownerModeState[0], setOwnerMode = ownerModeState[1];
+    var propertySizeState = React.useState('');
+    var propertySize = propertySizeState[0], setPropertySize = propertySizeState[1];
+    var frontageState = React.useState(''); // '' (not specified) | 'yes' | 'no'
+    var frontageValue = frontageState[0], setFrontageValue = frontageState[1];
+    var rankedResultsState = React.useState(null);
+    var rankedResults = rankedResultsState[0], setRankedResults = rankedResultsState[1];
+    var selectedRankState = React.useState(null);
+    var selectedRank = selectedRankState[0], setSelectedRank = selectedRankState[1];
+
     var businessType = BUSINESS_TYPES.filter(function(b){return b.value===businessTypeValue;})[0];
+
+    function propertyInfoFromInputs(){
+      var info = {};
+      if(propertySize!=='' && !isNaN(parseFloat(propertySize))) info.size = parseFloat(propertySize);
+      if(frontageValue==='yes') info.hasFrontage = true;
+      else if(frontageValue==='no') info.hasFrontage = false;
+      return info;
+    }
 
     function handleAddressChange(e){
       var val = e.target.value;
@@ -1151,6 +1245,8 @@
       if(!address.trim()){ setError('נא להזין כתובת.'); return; }
       setShowSuggestions(false);
       setResults(null);
+      setRankedResults(null);
+      setSelectedRank(null);
       setShowBreakdown(false);
       setLoading(true);
       var geoPromise;
@@ -1169,11 +1265,22 @@
           fetchTelAvivEnrichment(geo.lat, geo.lon)
         ]).then(function(pair){
           var elements = pair[0], tlv = pair[1];
+          var propertyInfo = propertyInfoFromInputs();
           setStage('מחשב ציון…');
-          var analysis = computeAnalysis(businessType, elements, geo, tlv);
-          analysis.center = geo;
-          analysis.addressLabel = geo.label;
-          setResults(analysis);
+          if(ownerMode==='property'){
+            var ranked = BUSINESS_TYPES.map(function(bt){
+              var analysis = computeAnalysis(bt, elements, geo, tlv, propertyInfo);
+              analysis.center = geo;
+              analysis.addressLabel = geo.label;
+              return { businessType:bt, analysis:analysis };
+            }).sort(function(a,b){ return b.analysis.score - a.analysis.score; });
+            setRankedResults(ranked);
+          } else {
+            var analysis = computeAnalysis(businessType, elements, geo, tlv, propertyInfo);
+            analysis.center = geo;
+            analysis.addressLabel = geo.label;
+            setResults(analysis);
+          }
         });
       }).catch(function(err){
         setError(err && err.message ? err.message : 'משהו השתבש. נסה שוב.');
@@ -1182,11 +1289,31 @@
       });
     }
 
+    var activeResults = null, activeLabel = null;
+    if(ownerMode==='business'){
+      activeResults = results; activeLabel = businessType.label;
+    } else if(rankedResults && selectedRank!=null && rankedResults[selectedRank]){
+      activeResults = rankedResults[selectedRank].analysis; activeLabel = rankedResults[selectedRank].businessType.label;
+    }
+
     return h('div',{className:'shell'},
       h('div',{className:'brand'},
         h('div',{className:'wordmark'}, 'BRILLIANT CORNERS'),
         h('h1',null,'ניתוח בהיר למסחר בעיר'),
-        h('p',null,'הזן כתובת וסוג עסק, וקבל חוות דעת ברורה על פוטנציאל ההצלחה של המיקום.')
+        h('p',null, ownerMode==='business'
+          ? 'הזן כתובת וסוג עסק, וקבל חוות דעת ברורה על פוטנציאל ההצלחה של המיקום.'
+          : 'הזן כתובת, וקבל דירוג של סוגי העסקים שהכי מתאימים לה.')
+      ),
+
+      h('div',{className:'mode-toggle'},
+        h('button',{
+          className:'mode-btn' + (ownerMode==='business'?' active':''),
+          onClick:function(){ setOwnerMode('business'); setRankedResults(null); setSelectedRank(null); setError(null); }
+        }, 'בעל עסק'),
+        h('button',{
+          className:'mode-btn' + (ownerMode==='property'?' active':''),
+          onClick:function(){ setOwnerMode('property'); setResults(null); setError(null); }
+        }, 'בעל נכס')
       ),
 
       h('div',{className:'panel input-panel'},
@@ -1218,7 +1345,7 @@
             ) : null
           )
         ),
-        h('div',{className:'select-wrap field'},
+        ownerMode==='business' ? h('div',{className:'select-wrap field'},
           h('label',null,'סוג עסק'),
           h('div',{className:'select-box'},
             h('select',{ value:businessTypeValue, onChange:function(e){setBusinessTypeValue(e.target.value);} },
@@ -1229,43 +1356,81 @@
               })
             )
           )
+        ) : null,
+        h('div',{className:'field', style:{flex:'0 1 140px'}},
+          h('label',null,'גודל במ״ר (אופציונלי)'),
+          h('input',{
+            type:'text', inputMode:'numeric', placeholder:'לדוגמה: 60',
+            value:propertySize, onChange:function(e){ setPropertySize(e.target.value.replace(/[^0-9.]/g,'')); }
+          })
+        ),
+        h('div',{className:'select-wrap field', style:{flex:'0 1 160px'}},
+          h('label',null,'חזית לרחוב'),
+          h('div',{className:'select-box'},
+            h('select',{ value:frontageValue, onChange:function(e){setFrontageValue(e.target.value);} },
+              h('option',{value:''}, 'לא צוין'),
+              h('option',{value:'yes'}, 'יש חזית'),
+              h('option',{value:'no'}, 'אין חזית')
+            )
+          )
         ),
         h('div',{className:'field btn-field'},
           h('label',{'aria-hidden':'true'}, '\u00A0'),
           h('button',{className:'analyze-btn', disabled:loading, onClick:handleAnalyze},
-            loading ? 'מנתח…' : 'נתח את המיקום'
+            loading ? 'מנתח…' : (ownerMode==='business' ? 'נתח את המיקום' : 'דרג סוגי עסקים')
           )
         )
       ),
 
       error ? h('div',{className:'error-box'}, error) : null,
       loading ? h('div',{className:'stage'}, h('div',{className:'spinner'}), stage) : null,
-      (!results && !loading && !error) ? h('div',{className:'empty-hint'}, 'התוצאה תופיע כאן תוך שניות — ציון, כמה גורמי מפתח ומפת סביבה.') : null,
+      (!results && !rankedResults && !loading && !error) ? h('div',{className:'empty-hint'}, ownerMode==='business'
+        ? 'התוצאה תופיע כאן תוך שניות — ציון, כמה גורמי מפתח ומפת סביבה.'
+        : 'רשימת סוגי העסקים המתאימים ביותר תופיע כאן תוך שניות.') : null,
 
-      results ? h('div',{className:'results'},
+      (rankedResults && selectedRank==null) ? h('div',{className:'ranked-list'},
+        h('div',{className:'ranked-head'},
+          'סוגי העסקים המתאימים ביותר ל־', h('b',null, rankedResults[0].analysis.addressLabel)
+        ),
+        rankedResults.slice(0,10).map(function(row,i){
+          var color = scoreColor(row.analysis.score);
+          return h('div',{key:row.businessType.value, className:'ranked-row', onClick:function(){ setSelectedRank(i); setShowBreakdown(false); }},
+            h('div',{className:'ranked-score', style:{color:color}}, row.analysis.score),
+            h('div',{className:'ranked-info'},
+              h('div',{className:'ranked-name'}, row.businessType.label),
+              h('div',{className:'ranked-summary'}, row.analysis.summary)
+            ),
+            h('div',{className:'ranked-arrow'}, '‹')
+          );
+        })
+      ) : null,
+
+      activeResults ? h('div',{className:'results'},
+        ownerMode==='property' ? h('button',{className:'back-to-list', onClick:function(){ setSelectedRank(null); }}, '‹ חזרה לרשימה') : null,
         h('div',{className:'panel score-section'},
-          h(Gauge,{score:results.score}),
-          h('div',{className:'addr-line'}, h('b',null, businessType.label), ' · ', results.addressLabel),
-          h('div',{className:'summary-box'}, results.summary),
+          h(Gauge,{score:activeResults.score}),
+          h('div',{className:'addr-line'}, h('b',null, activeLabel), ' · ', activeResults.addressLabel),
+          h('div',{className:'summary-box'}, activeResults.summary),
           h('button',{className:'breakdown-toggle', onClick:function(){ setShowBreakdown(!showBreakdown); }},
             showBreakdown ? 'הסתר את הפירוט' : 'למה הציון הזה?'
           ),
           showBreakdown ? h('div',{className:'breakdown-panel'},
-            h('div',{className:'breakdown-row'}, h('b',null,'כמה תנועה יש כאן: '), results.breakdown.quantity),
-            h('div',{className:'breakdown-row'}, h('b',null,'התאמת תזמון: '), results.breakdown.timing),
-            h('div',{className:'breakdown-row'}, h('b',null,'כמה קל להגיע: '), results.breakdown.access),
-            h('div',{className:'breakdown-row'}, h('b',null,'מי כבר כאן: '), results.breakdown.fit)
+            h('div',{className:'breakdown-row'}, h('b',null,'כמה תנועה יש כאן: '), activeResults.breakdown.quantity),
+            h('div',{className:'breakdown-row'}, h('b',null,'התאמת תזמון: '), activeResults.breakdown.timing),
+            h('div',{className:'breakdown-row'}, h('b',null,'כמה קל להגיע: '), activeResults.breakdown.access),
+            h('div',{className:'breakdown-row'}, h('b',null,'מי כבר כאן: '), activeResults.breakdown.fit),
+            activeResults.physicalFit ? h('div',{className:'breakdown-row'}, h('b',null,'התאמת הנכס (גודל/חזית): '), activeResults.physicalFit) : null
           ) : null
         ),
         h('div',{className:'factors'},
-          h(FactorCard,{factor:results.factors.quantity, icon:'quantity'}),
-          h(FactorCard,{factor:results.factors.timing, icon:'timing', timeProfile:results.timeProfile}),
-          h(FactorCard,{factor:results.factors.access, icon:'access'}),
-          h(FactorCard,{factor:results.factors.fit, icon:'fit'}),
-          results.tagCards.character ? h(TagCard,{card:results.tagCards.character, icon:'character'}) : null,
-          results.tagCards.renewal ? h(TagCard,{card:results.tagCards.renewal, icon:'renewal'}) : null
+          h(FactorCard,{factor:activeResults.factors.quantity, icon:'quantity'}),
+          h(FactorCard,{factor:activeResults.factors.timing, icon:'timing', timeProfile:activeResults.timeProfile}),
+          h(FactorCard,{factor:activeResults.factors.access, icon:'access'}),
+          h(FactorCard,{factor:activeResults.factors.fit, icon:'fit'}),
+          activeResults.tagCards.character ? h(TagCard,{card:activeResults.tagCards.character, icon:'character'}) : null,
+          activeResults.tagCards.renewal ? h(TagCard,{card:activeResults.tagCards.renewal, icon:'renewal'}) : null
         ),
-        h(MapPanel,{results:results})
+        h(MapPanel,{results:activeResults})
       ) : null,
 
       h('div',{className:'footer-note'},
