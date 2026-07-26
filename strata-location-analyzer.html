@@ -63,8 +63,12 @@
   .mode-btn:not(.active):hover{color:var(--text);border-color:var(--accent);}
 
   .ranked-list{margin-top:32px;}
-  .ranked-head{font-size:13px;color:var(--text-dim);margin-bottom:12px;padding:0 4px;}
+  .ranked-head{font-size:13px;color:var(--text-dim);margin-bottom:10px;padding:0 4px;}
   .ranked-head b{color:var(--text);}
+  .ranked-context{
+    font-size:13px;color:var(--text-dim);line-height:1.7;padding:14px 16px;margin-bottom:16px;
+    background:var(--panel-2);border:1px solid var(--border);border-radius:12px;
+  }
   .ranked-row{
     display:flex;align-items:center;gap:16px;padding:16px 18px;margin-bottom:8px;
     background:var(--panel);border:1px solid var(--border);border-radius:12px;cursor:pointer;
@@ -74,7 +78,7 @@
   .ranked-score{font-size:22px;font-weight:800;min-width:44px;text-align:center;}
   .ranked-info{flex:1;min-width:0;}
   .ranked-name{font-size:14.5px;font-weight:700;margin-bottom:3px;}
-  .ranked-summary{font-size:12.5px;color:var(--text-dim);line-height:1.5;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;}
+  .ranked-summary{font-size:12.5px;color:var(--text-dim);line-height:1.5;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
   .ranked-arrow{color:var(--text-faint);font-size:20px;flex:0 0 auto;}
   .back-to-list{
     display:block;margin:0 0 16px;background:none;border:none;color:var(--text-dim);
@@ -570,6 +574,28 @@
     ]).then(function(results){
       return { landuse:results[0], nightlife:results[1], bike:results[2], walkStreets:results[3], permits:results[4], redline:results[5], statarea:results[6] };
     });
+  }
+
+  // best-effort, anonymous usage logging - never blocks the UI and never surfaces an error,
+  // since this is a background signal, not part of the user's actual analysis
+  function logSearch(mode, geo, businessTypeValue, analysis){
+    try{
+      var factorScores = {
+        access: analysis.factors.access.score,
+        fit: analysis.factors.fit.score,
+        quantity: analysis.factors.quantity.score,
+        timing: analysis.factors.timing.score
+      };
+      var weakest = Object.keys(factorScores).reduce(function(a,b){ return factorScores[a]<=factorScores[b]?a:b; });
+      fetch('/api/log', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          mode: mode, lat: geo.lat, lon: geo.lon, addressLabel: geo.label,
+          businessType: businessTypeValue, score: analysis.score, weakestFactor: weakest
+        })
+      }).catch(function(){});
+    } catch(e){}
   }
 
   // ---------- scoring ----------
@@ -1275,11 +1301,13 @@
               return { businessType:bt, analysis:analysis };
             }).sort(function(a,b){ return b.analysis.score - a.analysis.score; });
             setRankedResults(ranked);
+            logSearch('property', geo, ranked[0].businessType.value, ranked[0].analysis);
           } else {
             var analysis = computeAnalysis(businessType, elements, geo, tlv, propertyInfo);
             analysis.center = geo;
             analysis.addressLabel = geo.label;
             setResults(analysis);
+            logSearch('business', geo, businessType.value, analysis);
           }
         });
       }).catch(function(err){
@@ -1392,13 +1420,17 @@
         h('div',{className:'ranked-head'},
           'סוגי העסקים המתאימים ביותר ל־', h('b',null, rankedResults[0].analysis.addressLabel)
         ),
+        h('div',{className:'ranked-context'},
+          rankedResults[0].analysis.factors.quantity.text + ' ' + rankedResults[0].analysis.factors.access.text
+        ),
         rankedResults.slice(0,10).map(function(row,i){
           var color = scoreColor(row.analysis.score);
+          var perTypeText = row.analysis.factors.fit.text + ' ' + row.analysis.factors.timing.text;
           return h('div',{key:row.businessType.value, className:'ranked-row', onClick:function(){ setSelectedRank(i); setShowBreakdown(false); }},
             h('div',{className:'ranked-score', style:{color:color}}, row.analysis.score),
             h('div',{className:'ranked-info'},
               h('div',{className:'ranked-name'}, row.businessType.label),
-              h('div',{className:'ranked-summary'}, row.analysis.summary)
+              h('div',{className:'ranked-summary'}, perTypeText)
             ),
             h('div',{className:'ranked-arrow'}, '‹')
           );
@@ -1434,7 +1466,7 @@
       ) : null,
 
       h('div',{className:'footer-note'},
-        'הציון מבוסס על נתוני מפה פתוחים (OpenStreetMap) ומודל היוריסטי פשוט - כלי עזר להערכה ראשונית, לא תחליף לבדיקת שטח. בתוך גבולות עיריית תל אביב-יפו, הניתוח כולל גם נתוני ייעוד קרקע, מדיניות לילה, הליכתיות והתחדשות עירונית ממקורות GIS עירוניים רשמיים.'
+        'הציון מבוסס על נתוני מפה פתוחים (OpenStreetMap) ומודל היוריסטי פשוט - כלי עזר להערכה ראשונית, לא תחליף לבדיקת שטח. בתוך גבולות עיריית תל אביב-יפו, הניתוח כולל גם נתוני ייעוד קרקע, מדיניות לילה, הליכתיות והתחדשות עירונית ממקורות GIS עירוניים רשמיים. לצורך שיפור הכלי, נשמר תיעוד אנונימי של חיפושים (כתובת, סוג עסק וציון) - ללא כל פרט מזהה על המשתמש.'
       )
     );
   }
