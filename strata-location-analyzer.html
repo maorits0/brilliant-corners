@@ -685,7 +685,9 @@
     var quantityText = density + (density===1?' עסק פעיל נמצא':' עסקים פעילים נמצאו') +
       ' ברדיוס 400 מטר — ' + (quantityDisp<40?'תנועה נמוכה יחסית.':quantityDisp<70?'תנועה סבירה.':'תנועה גבוהה.');
     if(topPower){
-      quantityText += ' בנוסף, ' + topPower.anchor.def.label + ' במרחק כ-' + Math.round(topPower.anchor.dist) + ' מטר תורם/ת למשיכת מבקרים נוספת.';
+      var powerName = (topPower.anchor.tags && topPower.anchor.tags.name) ? topPower.anchor.tags.name : null;
+      var powerLabel = powerName ? (powerName + ' (' + topPower.anchor.def.label + ')') : topPower.anchor.def.label;
+      quantityText += ' בנוסף, ' + powerLabel + ' במרחק כ-' + Math.round(topPower.anchor.dist) + ' מטר תורם/ת למשיכת מבקרים נוספת.';
     }
     var breakdownQuantity = 'צפיפות עסקים: ' + (Math.round(densityScore*10)/10) + '/18 · מוקדי משיכה: ' + (Math.round(powerScore*10)/10) + '/11' +
       (capEngaged ? ' (מוגבל ע״י תקרת השפעה למוקד בודד)' : '');
@@ -814,9 +816,14 @@
     else fit=10;
     var penalty = Math.min(competitors400.length*10,32);
     var fitDisp = Math.round(fit/30*100);
+    var namedCompetitors = competitors800.filter(function(b){ return b.tags && b.tags.name; })
+      .sort(function(a,b){ return a.dist-b.dist; })
+      .slice(0,3)
+      .map(function(b){ return b.tags.name; });
+    var competitorNamesClause = namedCompetitors.length ? (' (' + namedCompetitors.join(', ') + ')') : '';
     var fitText = sameCount800===0
       ? 'אין כרגע עסקים דומים ברדיוס 800 מטר — פוטנציאל בידול, אך גם ללא אימות ביקוש מקומי.'
-      : sameCount800 + (sameCount800===1?' עסק דומה פועל':' עסקים דומים פועלים') + ' כבר באזור, מה שמעיד על ' + (sameCount800<=2?'ביקוש מוכח בלי רוויה.':sameCount800<=5?'תמהיל תומך אך תחרותי יותר.':'אזור רווי לסוג עסק זה.');
+      : sameCount800 + (sameCount800===1?' עסק דומה פועל':' עסקים דומים פועלים') + competitorNamesClause + ' כבר באזור, מה שמעיד על ' + (sameCount800<=2?'ביקוש מוכח בלי רוויה.':sameCount800<=5?'תמהיל תומך אך תחרותי יותר.':'אזור רווי לסוג עסק זה.');
     var breakdownFit = sameCount800 + ' עסקים דומים ברדיוס 800 מ׳ → ' + Math.round(fit) + '/30 · קנס תחרות (מרדיוס 400 מ׳ בלבד): -' + Math.round(penalty) + ' נק׳ מהציון הכולל.';
 
     var sizePts = sizePoints(propertyInfo.size, businessType.size);
@@ -1132,12 +1139,14 @@
         .bindPopup('המיקום שנבחר').addTo(map);
 
       results.competitors.forEach(function(c){
+        var cName = (c.tags && c.tags.name) ? c.tags.name : null;
         L.marker([c.lat,c.lon], { icon: dotIcon('#E5484D',12) })
-          .bindPopup('מתחרה: ' + (c.matchValue||'')).addTo(map);
+          .bindPopup(cName ? (cName + ' (מתחרה)') : ('מתחרה: ' + (c.matchValue||''))).addTo(map);
       });
       results.otherBusinesses.forEach(function(b){
+        var bName = (b.tags && b.tags.name) ? b.tags.name : null;
         L.marker([b.lat,b.lon], { icon: dotIcon('#8B92A0',8) })
-          .bindPopup(b.matchValue||'עסק').addTo(map);
+          .bindPopup(bName || b.matchValue || 'עסק').addTo(map);
       });
       results.transit.forEach(function(t){
         L.marker([t.lat,t.lon], { icon: sqIcon('#4C8DFF',10) })
@@ -1146,7 +1155,8 @@
       (results.powerCenters||[]).forEach(function(p){
         var size = p.def.intensity==='high' ? 16 : 11;
         var peakHe = (p.def.peak||[]).map(function(t){ return TIME_LABEL_HE[t]; }).join(', ');
-        var popup = p.def.label + '<br>כ-' + Math.round(p.dist) + ' מטר · עצימות ' +
+        var pName = (p.tags && p.tags.name) ? p.tags.name : null;
+        var popup = (pName ? (pName + ' (' + p.def.label + ')') : p.def.label) + '<br>כ-' + Math.round(p.dist) + ' מטר · עצימות ' +
           (p.def.intensity==='high'?'גבוהה':'בינונית') + '<br>שעות שיא: ' + peakHe;
         L.marker([p.lat,p.lon], { icon: diamondIcon('#A78BFA',size) })
           .bindPopup(popup).addTo(map);
