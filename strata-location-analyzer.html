@@ -258,43 +258,43 @@
   // ---------- config ----------
   var BUSINESS_GROUPS = [
     { label:'אוכל ומשקאות', items:[
-      { value:'cafe',       label:'בית קפה',            osmKey:'amenity', osmValue:'cafe',       peak:['morning','afternoon'], size:{min:30,ideal:60,max:120}, frontage:true },
-      { value:'restaurant', label:'מסעדה',               osmKey:'amenity', osmValue:'restaurant', peak:['afternoon','evening'], size:{min:60,ideal:120,max:250}, frontage:true },
-      { value:'fast_food',  label:'מזון מהיר',           osmKey:'amenity', osmValue:'fast_food',  peak:['afternoon','evening'], size:{min:40,ideal:80,max:150}, frontage:true },
-      { value:'bakery',     label:'מאפייה',              osmKey:'shop',    osmValue:'bakery',     peak:['morning'], size:{min:30,ideal:55,max:100}, frontage:true },
-      { value:'ice_cream',  label:'גלידריה',             osmKey:'amenity', osmValue:'ice_cream',  peak:['afternoon','evening'], size:{min:15,ideal:35,max:70}, frontage:true },
-      { value:'bar',        label:'בר / פאב',            osmKey:'amenity', osmValue:'bar',        peak:['evening'], size:{min:40,ideal:90,max:200}, frontage:true }
+      { value:'cafe',       label:'בית קפה',            osmKey:'amenity', osmValue:'cafe',       peak:['morning','afternoon'], size:{min:50,ideal:90,max:170}, frontage:true },
+      { value:'restaurant', label:'מסעדה',               osmKey:'amenity', osmValue:'restaurant', peak:['afternoon','evening'], size:{min:50,ideal:90,max:170}, frontage:true },
+      { value:'fast_food',  label:'מזון מהיר',           osmKey:'amenity', osmValue:'fast_food',  peak:['afternoon','evening'], size:{min:20,ideal:35,max:60}, frontage:true },
+      { value:'bakery',     label:'מאפייה',              osmKey:'shop',    osmValue:'bakery',     peak:['morning'], size:{min:30,ideal:55,max:85}, frontage:true },
+      { value:'ice_cream',  label:'גלידריה',             osmKey:'amenity', osmValue:'ice_cream',  peak:['afternoon','evening'], size:{min:35,ideal:60,max:95}, frontage:true },
+      { value:'bar',        label:'בר / פאב',            osmKey:'amenity', osmValue:'bar',        peak:['evening'], size:{min:80,ideal:170,max:400}, frontage:true }
     ]},
     { label:'קמעונאות יומיומית', items:[
-      { value:'supermarket', label:'סופרמרקט',           osmKey:'shop', osmValue:'supermarket', peak:['morning','afternoon','evening'], size:{min:150,ideal:400,max:1200}, frontage:true },
-      { value:'convenience', label:'מכולת / מינימרקט',   osmKey:'shop', osmValue:'convenience',  peak:['morning','afternoon','evening'], size:{min:25,ideal:50,max:100}, frontage:true },
-      { value:'pharmacy',    label:'בית מרקחת',           osmKey:'amenity', osmValue:'pharmacy',  peak:['morning','afternoon'], size:{min:40,ideal:80,max:180}, frontage:true },
+      { value:'supermarket', label:'סופרמרקט',           osmKey:'shop', osmValue:'supermarket', peak:['morning','afternoon','evening'], size:{min:150,ideal:230,max:390}, frontage:true },
+      { value:'convenience', label:'מכולת / מינימרקט',   osmKey:'shop', osmValue:'convenience',  peak:['morning','afternoon','evening'], size:{min:30,ideal:45,max:90}, frontage:true },
+      { value:'pharmacy',    label:'בית מרקחת',           osmKey:'amenity', osmValue:'pharmacy',  peak:['morning','afternoon'], size:{min:90,ideal:165,max:400}, frontage:true },
       { value:'florist',     label:'חנות פרחים',          osmKey:'shop', osmValue:'florist',      peak:['afternoon'], size:{min:15,ideal:30,max:60}, frontage:true }
     ]},
     { label:'אופנה ועיצוב הבית', items:[
-      { value:'clothing',  label:'חנות בגדים',          osmKey:'shop', osmValue:'clothes',   peak:['afternoon','evening'], size:{min:30,ideal:80,max:200}, frontage:true },
-      { value:'shoes',     label:'חנות נעליים',         osmKey:'shop', osmValue:'shoes',      peak:['afternoon','evening'], size:{min:25,ideal:60,max:150}, frontage:true },
+      { value:'clothing',  label:'חנות בגדים',          osmKey:'shop', osmValue:'clothes',   peak:['afternoon','evening'], size:{min:30,ideal:57,max:105}, frontage:true },
+      { value:'shoes',     label:'חנות נעליים',         osmKey:'shop', osmValue:'shoes',      peak:['afternoon','evening'], size:{min:30,ideal:57,max:105}, frontage:true },
       { value:'jewelry',   label:'תכשיטים ואקססוריז',   osmKey:'shop', osmValue:'jewelry',    peak:['afternoon','evening'], size:{min:15,ideal:35,max:80}, frontage:true },
-      { value:'furniture', label:'רהיטים ועיצוב',       osmKey:'shop', osmValue:'furniture',  peak:['afternoon'], size:{min:100,ideal:300,max:800}, frontage:true }
+      { value:'furniture', label:'רהיטים ועיצוב',       osmKey:'shop', osmValue:'furniture',  peak:['afternoon'], size:{min:40,ideal:85,max:165}, frontage:true }
     ]},
     { label:'טיפוח ויופי', items:[
-      { value:'hairdresser', label:'מספרה',              osmKey:'shop', osmValue:'hairdresser', peak:['afternoon'], size:{min:25,ideal:50,max:100}, frontage:true },
-      { value:'beauty',      label:'קוסמטיקה וטיפוח',    osmKey:'shop', osmValue:'beauty',      peak:['afternoon'], size:{min:20,ideal:45,max:90}, frontage:true },
+      { value:'hairdresser', label:'מספרה',              osmKey:'shop', osmValue:'hairdresser', peak:['afternoon'], size:{min:20,ideal:32,max:50}, frontage:true },
+      { value:'beauty',      label:'קוסמטיקה וטיפוח',    osmKey:'shop', osmValue:'beauty',      peak:['afternoon'], size:{min:20,ideal:32,max:50}, frontage:true },
       { value:'tattoo',      label:'קעקועים ופירסינג',   osmKey:'shop', osmValue:'tattoo',      peak:['afternoon','evening'], size:{min:20,ideal:40,max:80}, frontage:false }
     ]},
     { label:'בריאות וכושר', items:[
-      { value:'gym',        label:'חדר כושר',            osmKey:'leisure', osmValue:'fitness_centre', peak:['morning','evening'], size:{min:150,ideal:350,max:1000}, frontage:false },
-      { value:'dentist',    label:'מרפאת שיניים',        osmKey:'amenity', osmValue:'dentist',    peak:['morning','afternoon'], size:{min:40,ideal:80,max:150}, frontage:false },
+      { value:'gym',        label:'חדר כושר',            osmKey:'leisure', osmValue:'fitness_centre', peak:['morning','evening'], size:{min:55,ideal:95,max:220}, frontage:false },
+      { value:'dentist',    label:'מרפאת שיניים',        osmKey:'amenity', osmValue:'dentist',    peak:['morning','afternoon'], size:{min:40,ideal:60,max:90}, frontage:false },
       { value:'optician',   label:'אופטיקה',             osmKey:'shop',    osmValue:'optician',   peak:['afternoon'], size:{min:20,ideal:45,max:90}, frontage:true },
-      { value:'veterinary', label:'וטרינר',              osmKey:'amenity', osmValue:'veterinary', peak:['morning','afternoon'], size:{min:40,ideal:80,max:150}, frontage:false }
+      { value:'veterinary', label:'וטרינר',              osmKey:'amenity', osmValue:'veterinary', peak:['morning','afternoon'], size:{min:35,ideal:60,max:95}, frontage:false }
     ]},
     { label:'פנאי ותרבות', items:[
       { value:'escape_game', label:'חדר בריחה',          osmKey:'leisure', osmValue:'escape_game', peak:['afternoon','evening'], size:{min:80,ideal:150,max:300}, frontage:false },
       { value:'games',       label:'משחקים ותחביבים',    osmKey:'shop',    osmValue:'games',       peak:['afternoon','evening'], size:{min:25,ideal:55,max:120}, frontage:true }
     ]},
     { label:'שירותים ומקצועות', items:[
-      { value:'laundry',       label:'מכבסה',              osmKey:'shop', osmValue:'laundry',       peak:['morning','afternoon'], size:{min:20,ideal:40,max:80}, frontage:true },
-      { value:'travel_agency', label:'סוכנות נסיעות',      osmKey:'shop', osmValue:'travel_agency', peak:['afternoon'], size:{min:20,ideal:45,max:90}, frontage:false },
+      { value:'laundry',       label:'מכבסה',              osmKey:'shop', osmValue:'laundry',       peak:['morning','afternoon'], size:{min:25,ideal:32,max:45}, frontage:true },
+      { value:'travel_agency', label:'סוכנות נסיעות',      osmKey:'shop', osmValue:'travel_agency', peak:['afternoon'], size:{min:55,ideal:130,max:390}, frontage:false },
       { value:'copyshop',      label:'בית דפוס והדפסות',   osmKey:'shop', osmValue:'copyshop',      peak:['morning','afternoon'], size:{min:20,ideal:45,max:90}, frontage:true }
     ]},
     { label:'ילדים ומשפחה', items:[
